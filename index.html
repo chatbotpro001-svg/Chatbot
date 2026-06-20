@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kewa AI - Static Frontend</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #f3f5fa 0%, #e7edfa 50%, #e2e7f7 100%); overflow: hidden; }
+        .glass-input { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05); }
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.1); border-radius: 10px; }
+        .modal-overlay { opacity: 0; transition: opacity 0.3s ease; display: none; }
+        .modal-overlay.active { opacity: 1; display: flex; }
+        .plus-menu { opacity: 0; transform: scale(0.8); transition: opacity 0.3s ease, transform 0.3s ease; display: none; }
+        .plus-menu.active { opacity: 1; transform: scale(1); display: block; }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center font-sans antialiased select-none">
+
+    <div class="w-full max-w-md h-[92vh] bg-gradient-to-b from-[#f9faff] via-[#edf2fe] to-[#e4ebfc] rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col justify-between p-6 border border-white/40">
+        
+        <div class="flex justify-between items-center w-full z-10">
+            <button class="text-gray-700 text-xl p-2 hover:opacity-70 cursor-pointer"><i class="fa-solid fa-bars"></i></button>
+            <button class="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md text-sm font-medium text-gray-700 border border-gray-100 cursor-pointer">
+                <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png" alt="Google" class="w-4 h-4"> Google Login
+            </button>
+            <button id="three-dots-btn" class="text-gray-700 text-xl p-2 hover:opacity-70 cursor-pointer"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
+
+        <div id="main-content" class="flex flex-col items-center text-center flex-grow justify-center -mt-12 transition-all duration-500">
+            <div class="relative w-44 h-44 mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 bg-gradient-to-b from-purple-200 to-indigo-300 rounded-full blur-xl opacity-40 scale-110"></div>
+                <div class="w-40 h-40 bg-gradient-to-b from-white to-blue-50 rounded-full shadow-inner flex items-center justify-center relative border border-white">
+                    <div class="absolute -top-4 flex gap-1">
+                        <div class="w-6 h-8 bg-purple-400 rounded-tl-full rounded-br-full rotate-12 opacity-80"></div>
+                        <div class="w-6 h-8 bg-purple-400 rounded-tr-full rounded-bl-full -rotate-12 opacity-80"></div>
+                    </div>
+                    <div class="w-32 h-24 bg-[#1e2342] rounded-[40px] flex flex-col items-center justify-center gap-1 shadow-lg p-4">
+                        <div class="flex justify-center gap-8 w-full px-2">
+                            <span class="text-white text-xl font-bold leading-none">^</span>
+                            <span class="text-white text-xl font-bold leading-none">^</span>
+                        </div>
+                        <div class="w-5 h-2.5 border-b-2 border-white rounded-b-full mt-1"></div>
+                    </div>
+                </div>
+            </div>
+            <h1 class="text-5xl font-extrabold tracking-wide bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">Kewa AI</h1>
+            <div class="flex items-center gap-2 text-gray-500 text-sm font-medium">
+                <div class="h-[1px] w-8 bg-gray-300"></div><span>✦</span><span>Your Smart AI Companion</span><div class="h-[1px] w-8 bg-gray-300"></div>
+            </div>
+        </div>
+
+        <div id="chat-box" class="hidden flex-col gap-3 overflow-y-auto flex-grow my-4 p-2 text-sm"></div>
+
+        <div id="input-bar" class="w-full glass-input rounded-full p-2 flex items-center justify-between gap-2 border border-white z-10 transition-transform duration-300">
+            <button id="plus-btn" class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 cursor-pointer"><i class="fa-solid fa-plus text-lg"></i></button>
+            <input id="user-input" type="text" placeholder="Ask anything..." class="w-full bg-transparent py-2 px-1 text-gray-700 focus:outline-none text-base">
+            <button class="w-10 h-10 rounded-full text-indigo-500 hover:bg-gray-100 flex items-center justify-center shrink-0 cursor-pointer"><i class="fa-solid fa-microphone text-lg"></i></button>
+            <button id="send-btn" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center shadow-md shrink-0 cursor-pointer"><i class="fa-solid fa-paper-plane text-base ml-0.5"></i></button>
+        </div>
+    </div>
+
+    <div id="three-dots-modal" class="modal-overlay fixed inset-0 bg-black/40 z-50 flex items-start justify-end p-6 pt-16">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-sm flex flex-col gap-4 border border-gray-100">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800">Options</h3>
+                <button id="close-three-dots" class="text-gray-400 hover:text-gray-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <button id="new-chat-btn" class="flex items-center gap-3 w-full bg-indigo-50 p-4 rounded-xl text-indigo-700 font-medium hover:bg-indigo-100 transition cursor-pointer"><i class="fa-solid fa-pen-to-square text-lg"></i>New Chat</button>
+            <div class="mt-2 flex-grow overflow-hidden flex flex-col gap-3">
+                <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">History</h4>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    <button class="w-full text-left p-3 rounded-xl text-gray-700 text-sm hover:bg-gray-50 transition flex items-center gap-2"><i class="fa-solid fa-message text-gray-300"></i><span class="truncate">Weather today?</span></button>
+                    <button class="w-full text-left p-3 rounded-xl text-gray-700 text-sm hover:bg-gray-50 transition flex items-center gap-2"><i class="fa-solid fa-message text-gray-300"></i><span class="truncate">Tell me a joke</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="plus-menu" class="fixed bottom-[13vh] left-[5.5rem] z-40 plus-menu">
+        <div class="bg-white p-2 rounded-full shadow-lg border border-gray-100 flex gap-2">
+            <button id="action-photo" title="Upload Image" class="w-12 h-12 rounded-full bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-image text-lg"></i></button>
+            <button id="action-camera" title="Open Camera" class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-camera text-lg"></i></button>
+            <button id="action-file" title="Upload File" class="w-12 h-12 rounded-full bg-sky-50 text-sky-500 hover:bg-sky-100 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-file-lines text-lg"></i></button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const mainContent = document.getElementById('main-content');
+        const userInput = document.getElementById('user-input');
+        const threeDotsBtn = document.getElementById('three-dots-btn');
+        const threeDotsModal = document.getElementById('three-dots-modal');
+        const closeThreeDots = document.getElementById('close-three-dots');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const plusBtn = document.getElementById('plus-btn');
+        const plusMenu = document.getElementById('plus-menu');
+        const inputBar = document.getElementById('input-bar');
+
+        // 🟢 [YAHAN APNA DEPLOYED RENDER BACKEND URL DALO BHAI]
+        // Example: "https://kewa-backend.onrender.com" (Aakhiri me '/' mat lagana)
+        const BACKEND_URL = "https://chatbot-back-7.onrender.com"; 
+
+        let isImageProcessing = false;
+
+        function toggleState(showChat) {
+            if (showChat) { mainContent.classList.add('hidden'); chatBox.classList.remove('hidden'); chatBox.classList.add('flex'); }
+            else { mainContent.classList.remove('hidden'); chatBox.classList.add('hidden'); chatBox.classList.remove('flex'); chatBox.innerHTML = ''; }
+        }
+
+        function addBubble(text, sender) {
+            let classes = sender === 'user' ? 'self-end bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-tr-none' : 'self-start bg-white text-gray-800 rounded-tl-none border border-gray-100';
+            chatBox.innerHTML += `<div class="${classes} rounded-2xl px-4 py-2.5 max-w-[80%] shadow-sm">${text}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const messageText = userInput.value.trim();
+            if (!messageText && !isImageProcessing) return;
+
+            closePlusMenu();
+            toggleState(true);
+            if(messageText) addBubble(messageText, 'user');
+            userInput.value = '';
+
+            // Render Deployed Backend URL Par Request Ja Rahi Hai
+            fetch(`${BACKEND_URL}/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: messageText, image_active: isImageProcessing })
+            })
+            .then(res => res.json())
+            .then(data => { addBubble(data.response, 'bot'); isImageProcessing = false; })
+            .catch(() => addBubble("❌ Error: Backend URL sahi nahi hai ya server down hai.", 'bot'));
+        }
+
+        function uploadSimulate(type) {
+            closePlusMenu(); toggleState(true); isImageProcessing = true;
+            addBubble(`<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-t-indigo-600 rounded-full animate-spin"></div> Uploading ${type}...</div>`, 'bot');
+
+            fetch(`${BACKEND_URL}/process-image`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type })
+            })
+            .then(res => res.json())
+            .then(data => addBubble(data.message, 'bot'));
+        }
+
+        threeDotsBtn.addEventListener('click', () => threeDotsModal.classList.add('active'));
+        closeThreeDots.addEventListener('click', () => threeDotsModal.classList.remove('active'));
+        newChatBtn.addEventListener('click', () => { toggleState(false); threeDotsModal.classList.remove('active'); });
+
+        function openPlusMenu() { plusMenu.classList.add('active'); inputBar.classList.add('translate-x-12'); }
+        function closePlusMenu() { plusMenu.classList.remove('active'); inputBar.classList.remove('translate-x-0'); }
+        plusBtn.addEventListener('click', (e) => { e.stopPropagation(); plusMenu.classList.contains('active') ? closePlusMenu() : openPlusMenu(); });
+        document.addEventListener('click', () => closePlusMenu());
+        
+        document.getElementById('action-photo').addEventListener('click', () => uploadSimulate('image'));
+        document.getElementById('action-camera').addEventListener('click', () => uploadSimulate('camera photo'));
+        document.getElementById('action-file').addEventListener('click', () => uploadSimulate('document'));
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
+</body>
+</html>
